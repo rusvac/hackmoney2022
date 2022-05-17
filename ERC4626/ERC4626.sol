@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "../ERC20.sol";
-import "../utils/SafeERC20.sol";
-import "../../../interfaces/IERC4626.sol";
-import "../../../utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./IERC4626.sol";
+import "./Math.sol";
 
 abstract contract ERC4626 is ERC20, IERC4626 {
     using Math for uint256;

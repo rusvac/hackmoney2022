@@ -20,7 +20,7 @@ contract Battery is ERC721 {
     }
 
     constructor(
-        _keeper
+        address _keeper
     ) ERC721("Recharging Borrowing Power", "BATTERY") {
         keeper = _keeper;
     }
