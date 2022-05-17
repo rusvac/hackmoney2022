@@ -1,0 +1,4 @@
+interface ICharger {
+
+    function 
+}

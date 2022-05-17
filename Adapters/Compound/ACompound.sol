@@ -14,9 +14,19 @@ contract BA_Compound is
 
     }
 
-    function decimals() external view returns(uint8)
-    function description() external view returns(uint8)
-    function getRoundData() external view returns(uint8)
-    function latestRoundData() external view returns(uint8)
-    function version() external view returns (uint256)
+    function description() external view returns(string memory) {
+        return("Battery x Compound Adapter");
+    }
+    
+    function version() external view returns (uint256) {
+        return(1);
+    }
+
+    function decimals() external view returns(uint8) {
+        return(8);
+    }
+
+    function price() external view returns(uint256) {
+
+    }
 }

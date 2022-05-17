@@ -8,7 +8,6 @@ import "./Adapters/IAdapter.sol";
 contract Keeper is Ownable {
 
     //      asset       contract
-    mapping (address => address) public registry;
     mapping (address => address) public adapter;
 
     constructor(
