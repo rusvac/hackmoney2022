@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "";
-
 
 contract Battery is Ownable {
 	using SafeERC20 for IERC20;
@@ -16,6 +14,8 @@ contract Battery is Ownable {
     address public keeper;
 
     address public charge;
+
+    uint256 public peg;
 
     //      asset             lockerID    amount
     mapping(address => mapping(uint256 => uint256)) public hold;
@@ -27,6 +27,8 @@ contract Battery is Ownable {
         keeper = _keeper;
 
         charge = _charge;
+        peg    = 100000000; //$1
+
 
         transferOwnership(msg.sender);
     }
@@ -43,6 +45,13 @@ contract Battery is Ownable {
 
     */
 
+    function recharge(
+        address locker,
+
+    ) external onlyOwner(id) {
+
+    }
+
 
     /*
         PLACE HOLD
@@ -52,10 +61,8 @@ contract Battery is Ownable {
         uint256 id,
         uint256 amount
     ) external onlyOwner(id) {
-        //claim all available charges
 
         
-        hold[id] = hold[id].add(amount);
     }
 
 
@@ -105,12 +112,29 @@ contract Battery is Ownable {
     }
 
 
-
     function getHold(
         address asset,
         uint256 locker
-    ) external returns(uint256) {
+    ) public returns(uint256) {
         return(hold[asset][locker]);
+    }
+
+    // INTERAL HOLD FUNCTIONS
+
+    function _addHold(
+        address asset,
+        uint256 locker,
+        uint256 amount
+    ) internal {
+        hold[asset][locker] = getHold(asset, locker).add(amount);
+    }
+
+    function _subHold(
+        address asset,
+        uint256 locker,
+        uint256 amount
+    ) internal {
+        hold[asset][locker] = getHold(asset, locker).sub(amount);
     }
  
 }

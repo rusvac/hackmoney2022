@@ -1,0 +1,12 @@
+as end-user
+
+
+how to setup a self-paying loan
+
+1. create a vault - call create() on Charger
+2. deposit asset into vault - deposit()
+
+claiming charged up loan:
+
+1. claim CHRG tokens from vault - call recharge()
+    this will transfer all CHRG tokens that can be accredited to the vault to the user
