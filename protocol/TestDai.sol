@@ -5,13 +5,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ChargeToken is Ownable, ERC20 {
+contract TestDai is Ownable, ERC20 {
 
     event Mint(uint256 amount);
     event Burn(uint256 amount);
 
     constructor(
-    ) ERC20("Charge Token","CHRG") {
+    ) ERC20("Test Vault Dai","tvDAI") {
+        increaseSupply(10000000);
         transferOwnership(msg.sender);
     }
 

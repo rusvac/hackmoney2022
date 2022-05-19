@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,9 +13,11 @@ import "../interfaces/IOracleAdapter.sol";
 import "../interfaces/ICharger.sol";
 import "../interfaces/IPlug.sol";
 
-contract Battery is Ownable {
+contract Battery is Ownable, AccessControl {
 	using SafeERC20 for IERC20;
     using SafeMath for uint256;
+
+    bytes32 public constant CHARGER = keccak256("CHARGER_ROLE");
 
     event Discharge(
         address charger,
@@ -53,6 +56,15 @@ contract Battery is Ownable {
         _;
     }
 
+    modifier imposesFee(
+        address locker,
+        uint256 id
+    ) {
+        require( ICharger(locker).imposeOperationFee(id)
+            , "could not apply fee to account");
+        _;
+    }
+
     constructor(
         address _charge
     ) {
@@ -80,13 +92,14 @@ contract Battery is Ownable {
         address _charger,
         uint256 id,
         uint256 _amount
-    ) external onlyLockerOwner(_charger, id) {
+    ) external imposesFee(_charger, id) onlyLockerOwner(_charger, id) {
         //claim all available charges up to _amount
 
         ICharger charger = ICharger(_charger);
 
         uint256 maxCharges = _charges();
         uint256 amount = (_amount == type(uint256).max) ? maxCharges : _amount;
+        require(amount <= maxCharges, "request cannot be filled");
 
         uint256 collateral = charger.locked(id);
         uint256 hold       = getHold(_charger, id);
@@ -111,11 +124,11 @@ contract Battery is Ownable {
         resolve the hold on the assets, unlocking them
     */
     function returnCharges(
-        address charger,
+        address _charger,
         uint256 id,
         uint256 _amount
-    ) external onlyLockerOwner(charger, id) {
-        uint256 amount = getHold(charger, id);
+    ) external imposesFee(_charger, id) onlyLockerOwner(_charger, id) {
+        uint256 amount = getHold(_charger, id);
 
         if(_amount < type(uint256).max) {
             require(_amount <= amount
@@ -129,7 +142,7 @@ contract Battery is Ownable {
             amount
         );
         
-        _subHold(charger, id, amount);
+        _subHold(_charger, id, amount);
     }
 
 

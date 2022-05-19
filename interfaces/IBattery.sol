@@ -11,6 +11,13 @@ interface IBattery {
 
     function resolveHold() external;
     
-    function flashResolve(address receiverAddress, uint256 batteryID) external;
+    function flashResolve(
+        address receiverAddress,
+
+        address locker,
+        uint256 id,
+
+        bytes calldata params
+    ) external;
 
 }

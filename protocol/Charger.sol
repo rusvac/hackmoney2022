@@ -9,6 +9,8 @@ import "./libraries/Oracles/Simple.sol";
 
 import "../interfaces/IBattery.sol";
 
+import "hardhat/console.sol";
+
 contract Charger is 
     OracleSimple,
     ERC721Vault
@@ -26,6 +28,12 @@ contract Charger is
         uint256 amount
     );
     
+
+    event Operation(
+        uint256 id,
+        uint256 amount
+    );
+    
     IBattery public battery;
 
     mapping(uint256 => uint256) public _locked;
@@ -36,7 +44,12 @@ contract Charger is
     modifier onlyOwner(
         uint256 id
     ) {
-        require(ownerOf(id) == msg.sender, "");
+        require(ownerOf(id) == msg.sender, "cannot");
+        _;
+    }
+
+    modifier onlyBattery() {
+        require(msg.sender == address(battery), "cannot");
         _;
     }
 
@@ -73,8 +86,10 @@ contract Charger is
  B -Battery Contract
     */
 
-    function create() external returns(uint256) {
-        return(_create(msg.sender));
+    function createCharger() external returns(uint256) {
+        uint256 newId = _create(msg.sender);
+        console.log(newId);
+        return newId;
     }
 
     function destroy(
@@ -159,20 +174,41 @@ contract Charger is
 
     function _liquid(
         uint256 id
-    ) internal view returns(uint256) {
+    ) public view returns(uint256) {
         return( locked(id).sub(
             hold(id).mul(battery.peg()).div(getPrice())
         ) );
     }
 
-    function _bal(
-        address token
-    ) internal view returns(uint256) {
-        return(IERC20(token).balanceOf(address(this)));
+    function totalLocked() public view returns(uint256) {
+        return(IERC20(asset()).balanceOf(address(this)));
     }
 
-    function approveBattery() external {
+    function approveBattery() external onlyBattery {
         IERC20(asset()).approve(address(battery), type(uint256).max);
+    }
+
+    function imposeOperationFee(
+        uint256 id
+    ) external onlyBattery returns(bool) {
+        uint256 lock = locked(id);
+        uint256 coll = locked(_col());
+        
+        (uint256 va, uint256 vi) = scale(10000, lock.mul(50));
+        uint256 comp = (vi).div(va);
+
+        uint256 newLocked = lock.sub(comp);
+        uint256 newColl   = coll.add(comp);
+        assert(
+            (newLocked <= lock) &&
+            (coll      <= newColl)
+        );
+
+        _locked[id] = newLocked;
+        _locked[_col()] = newColl;
+
+        emit Operation(id, comp);
+        return(true);
     }
 
 }
