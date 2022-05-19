@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../interfaces/IAdapter.sol";
 
-contract Keeper is Ownable {
+contract Substation is Ownable {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
@@ -50,5 +50,30 @@ contract Keeper is Ownable {
 		uint256 iassetValue = iassets.mul(debtPrice());
 		return(assetValue, iassetValue);
 	}
+
+    // PUBLIC FACING SUBSTATION FUNCTIONS
+
+    function getRealPrice(
+        address asset
+    ) external view returns(uint256 amount) {
+        return(
+            IAdapter(
+                adapter[asset]
+            ).price(
+                asset,
+                amount
+            )
+        );
+    }
+
+    //rounded downward
+    function convertAssetToCharge() public {
+
+    }
+
+    //rounded upward
+    function convertChargeToAsset() public {
+
+    }
 
 }

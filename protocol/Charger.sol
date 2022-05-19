@@ -5,8 +5,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./libraries/ERC721Vault.sol";
+import "./libraries/Oracles/Simple.sol";
 
-contract Charger is ERC721Vault {
+import "../interfaces/IBattery.sol";
+
+contract Charger is 
+    OracleSimple,
+    ERC721Vault
+    {
 	using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -20,10 +26,12 @@ contract Charger is ERC721Vault {
         uint256 amount
     );
     
-    address public battery;
+    IBattery public battery;
 
-    address public asset;
     mapping(uint256 => uint256) public _locked;
+
+    uint256 public minimumRatio;
+    uint256 public maximumRatio;
 
     modifier onlyOwner(
         uint256 id
@@ -38,10 +46,18 @@ contract Charger is ERC721Vault {
 
         address _battery,
 
-        address _asset
+        address _asset,
+        address _oracle,
+
+        uint256 _min,
+        uint256 _max
     ) ERC721Vault(name, symbol) {
-        battery = _battery;
-        asset = _asset;
+        battery = IBattery(_battery);
+
+        minimumRatio = _min;
+        maximumRatio = _max;
+
+        initOracle(_asset, _oracle);
     }
 
     /*
@@ -50,12 +66,11 @@ contract Charger is ERC721Vault {
 
     remove asset, -- limit
 
-    allow lend, ++ hold
+ B  allow lend, ++ hold
 
-    repay debt, -- hold
+ B  repay debt, -- hold
 
-    resolve hold function (swap debt tokens for colat) -- hold
-
+ B -Battery Contract
     */
 
     function create() external returns(uint256) {
@@ -69,9 +84,10 @@ contract Charger is ERC721Vault {
         require(locked(id) == 0 || empty, "Vault contains assets");
         require(hold(id) == 0, "Vault has an outstanding position");
         if(empty) {
-            IERC20(asset).safeTransfer(msg.sender, locked[id]);
+            IERC20(asset()).safeTransfer(msg.sender, locked(id));
         }
         _destroy(id);
+        _locked[id] = 0;
     }
 
     /*
@@ -82,7 +98,7 @@ contract Charger is ERC721Vault {
         uint256 id,
         uint256 amount
     ) external onlyOwner(id) {
-        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(asset()).safeTransferFrom(msg.sender, address(this), amount);
 
         _locked[id] = _locked[id].add(amount);
 
@@ -99,12 +115,15 @@ contract Charger is ERC721Vault {
         uint256 id,
         uint256 amount
     ) external onlyOwner(id) {
-
+        uint256 outstanding = hold(id);
+        require( outstanding == 0 ||
+            health(locked(id).sub(amount), outstanding) >= minimumRatio
+            , "Cannot withdraw");
         //check with battery for a hold
 
         _locked[id] = _locked[id].sub(amount);
         
-        IERC20(asset).safeTransfer(msg.sender, amount);
+        IERC20(asset()).safeTransfer(msg.sender, amount);
 
         emit Withdraw(id, amount);
     }
@@ -118,21 +137,42 @@ contract Charger is ERC721Vault {
     }
 
     function hold(uint256 id) public view returns(uint256) {
-        return(_hold[id]);
+        return(battery.getHold(address(this), id));
+    }
+    
+    function scale(
+		uint256 a,
+		uint256 c
+	) internal view returns(uint256, uint256) {
+		uint256 assetValue = a.mul(getPrice());
+		uint256 chargeValue = c.mul(battery.peg());
+		return(assetValue, chargeValue);
+	}
+
+    function health(
+        uint256 a,
+        uint256 c
+    ) public view returns(uint256) {
+        (uint256 va, uint256 vi) = scale(a, c);
+        return(va.mul(100).div(vi));
     }
 
     function _liquid(
         uint256 id
-    ) internal virtual returns(uint256) {
-        return(
-            locked[id]
-        );
+    ) internal view returns(uint256) {
+        return( locked(id).sub(
+            hold(id).mul(battery.peg()).div(getPrice())
+        ) );
     }
 
     function _bal(
         address token
     ) internal view returns(uint256) {
         return(IERC20(token).balanceOf(address(this)));
+    }
+
+    function approveBattery() external {
+        IERC20(asset()).approve(address(battery), type(uint256).max);
     }
 
 }
