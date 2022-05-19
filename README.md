@@ -9,6 +9,16 @@ Battery         - Claim charges and liquidation logic
 ```
 *not included
 
+__Contract Sizes__
+```
+ ·-----------------|-------------·
+ |  Contract Name  ·  Size (KB)  │
+ ··················|··············
+ |  Battery        ·     12.038  │
+ ··················|··············
+ |  Charger        ·     19.636  │
+ ·-----------------|-------------·
+```
 
 
 __Description__
