@@ -6,8 +6,7 @@
 __Outline__
 ```
 Powerplant*     - Interest Bearing Assets
-Substation      - Registry for Oracle and Price Logic
 Charger         - Locker for assets
-Transformer     - Resolves holds
+Battery         - Claim charges and liquidation logic
 ```
 *not included
