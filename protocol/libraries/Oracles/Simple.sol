@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface Oracle {
+interface ChainlinkOracle {
     function decimals() external view returns (uint8);
 
 	function latestRoundData() external view returns (
@@ -31,7 +31,7 @@ abstract contract OracleSimple {
     ) internal {
         _asset = new_asset;
         _oracle = new_oracle;
-        _oracleDecimals = Oracle(_oracle).decimals();
+        _oracleDecimals = ChainlinkOracle(_oracle).decimals();
     }
 
     function asset() public view returns(address) {
@@ -43,7 +43,7 @@ abstract contract OracleSimple {
     }
 
     function getPrice() public view returns(uint256) {
-        (,int256 price,,,) = Oracle(_oracle).latestRoundData();
+        (,int256 price,,,) = ChainlinkOracle(_oracle).latestRoundData();
         return(uint256(price));
     }
 
