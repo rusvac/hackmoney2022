@@ -47,16 +47,4 @@ abstract contract OracleSimple {
         return(uint256(price));
     }
 
-    function convertAssetToCharge(
-        uint256 amount
-    ) external view returns(uint256) {
-
-    }
-
-    function convertChargeToAsset(
-        uint256 amount
-    ) external view returns(uint256) {
-
-    }
-
 }

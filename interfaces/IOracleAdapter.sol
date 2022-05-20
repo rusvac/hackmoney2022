@@ -6,14 +6,4 @@ interface IOracleAdapter {
     function oracle() external view returns(address);
 
     function getPrice() external view returns(uint256);
-
-    function convertAssetToCharge(
-        address asset,
-        uint256 amount
-    ) external view returns(uint256);
-
-    function convertChargeToAsset(
-        address asset,
-        uint256 amount
-    ) external view returns(uint256);
 }
