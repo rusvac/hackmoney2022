@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./IERC4626.sol";
+import "../interfaces/IERC4626.sol";
 import "./Math.sol";
 
 abstract contract ERC4626 is ERC20, IERC4626 {
@@ -183,5 +183,19 @@ abstract contract ERC4626 is ERC20, IERC4626 {
             (supply == 0)
                 ? shares.mulDiv(10**_asset.decimals(), 10**decimals(), direction)
                 : shares.mulDiv(totalAssets(), supply, direction);
+    }
+
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        uint256 currentAllowance = allowance(owner, spender);
+        if (currentAllowance != type(uint256).max) {
+            require(currentAllowance >= amount, "ERC20: insufficient allowance");
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
+        }
     }
 }

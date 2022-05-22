@@ -43,11 +43,11 @@ abstract contract OracleCompound {
         _oracle = new_oracle;
         _oracleDecimals = CToken(_oracle).decimals();
 
-        _decimalOffset = (
-            CToken(
+        uint256 assetDecimal = CToken(
                 CToken(_asset).underlying()
-            ).decimals()
-        ).sub(_oracleDecimals);
+            ).decimals();
+
+        _decimalOffset = assetDecimal.sub(8);
 
         _decimalOffset = 10**(_decimalOffset);
     }
@@ -67,7 +67,7 @@ abstract contract OracleCompound {
         //cToken / asset price
         uint256 rate = CToken(_asset).exchangeRateStored();
         uint256 sharePrice = rate.div(_decimalOffset);
-        uint256 realPrice = price * sharePrice;
+        uint256 realPrice = uint256(price).mul(sharePrice);
         //cToken / USD price
         return(realPrice);
     }

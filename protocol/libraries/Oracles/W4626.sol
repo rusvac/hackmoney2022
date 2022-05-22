@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+interface IERC4626 {
+    function convertToAssets(uint256) external view returns (uint256);
+}
+
 interface ChainlinkOracle {
     function decimals() external view returns (uint8);
 
@@ -20,6 +26,7 @@ interface ChainlinkOracle {
 */
 
 abstract contract OracleW4626 {
+    using SafeMath for uint256;
 
     address private _asset;
     address private _oracle;
@@ -43,8 +50,9 @@ abstract contract OracleW4626 {
     }
 
     function getPrice() public view returns(uint256) {
+        uint256 sharePrice = IERC4626(_asset).convertToAssets(1);
         (,int256 price,,,) = ChainlinkOracle(_oracle).latestRoundData();
-        return(uint256(price));
+        return(uint256(price).mul(sharePrice));
     }
 
 }
