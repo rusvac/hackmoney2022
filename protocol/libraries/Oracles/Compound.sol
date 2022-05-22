@@ -3,23 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-interface ChainlinkOracle {
-	function latestRoundData() external view returns (
-		uint80 roundId,
-		int256 answer,
-		uint256 startedAt,
-		uint256 updatedAt,
-		uint80 answeredInRound
-	);
-}
+import "./inter/IChainlink.sol";
 
-interface CToken {
-    function decimals() external view returns (uint8);
-    
-    function underlying() external view returns (address);
-
-    function exchangeRateStored() external view returns (uint);
-}
+import "./inter/ICToken.sol";
 
 /*
 
@@ -41,10 +27,10 @@ abstract contract OracleCompound {
     ) internal {
         _asset = new_asset;
         _oracle = new_oracle;
-        _oracleDecimals = CToken(_oracle).decimals();
+        _oracleDecimals = CompoundToken(_oracle).decimals();
 
-        uint256 assetDecimal = CToken(
-                CToken(_asset).underlying()
+        uint256 assetDecimal = CompoundToken(
+                CompoundToken(_asset).underlying()
             ).decimals();
 
         _decimalOffset = assetDecimal.sub(8);
@@ -65,8 +51,10 @@ abstract contract OracleCompound {
         (,int256 price,,,) = ChainlinkOracle(_oracle).latestRoundData();
 
         //cToken / asset price
-        uint256 rate = CToken(_asset).exchangeRateStored();
+        uint256 rate = CompoundToken(_asset).exchangeRateStored();
+
         uint256 sharePrice = rate.div(_decimalOffset);
+
         uint256 realPrice = uint256(price).mul(sharePrice);
         //cToken / USD price
         return(realPrice);

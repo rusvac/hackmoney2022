@@ -3,34 +3,39 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../../../interfaces/IERC4626.sol";
-
 import "./inter/IChainlink.sol";
+
+import "./inter/IYearnVault.sol";
 
 /*
 
-    Oracle Adapter - ERC4626 wrapped Simple (Chainlink)
+    Oracle Adapter - Yearn Stable Credit
 
 */
 
-abstract contract OracleW4626 {
+abstract contract OracleYearnCredit {
     using SafeMath for uint256;
 
-    address private _asset;
+    address private _yvault;
+    uint256 public _ydecimals;
+
     address private _oracle;
     uint256 private _oracleDecimals;
+    
 
     function initOracle(
-        address new_asset,
-        address new_oracle
+        address yearnVaultToken,
+        address chainLinkOracle
     ) internal {
-        _asset = new_asset;
-        _oracle = new_oracle;
+        _yvault = yearnVaultToken;
+        _oracle = chainLinkOracle;
         _oracleDecimals = ChainlinkOracle(_oracle).decimals();
+
+        _ydecimals = uint8(YearnVault(_yvault).decimals());
     }
 
     function asset() public view returns(address) {
-        return(_asset);
+        return(_yvault);
     }
 
     function oracle() public view returns(address) {
@@ -38,9 +43,8 @@ abstract contract OracleW4626 {
     }
 
     function getPrice() public view returns(uint256) {
-        uint256 sharePrice = IERC4626(_asset).convertToAssets(1);
-        (,int256 price,,,) = ChainlinkOracle(_oracle).latestRoundData();
-        return(uint256(price).mul(sharePrice));
+        uint256 sharePrice = YearnVault(_yvault).creditPerShare();
+        return(sharePrice);
     }
 
 }
