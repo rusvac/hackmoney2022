@@ -40,3 +40,7 @@ __Cool Stuff__
 - a new charger can be deployed to accept any fancy new interest bearing asset
 - the chargers are ERC721 token vaults that can hold metadata and be traded 
 - Flash Resolutions are reminisent of flash loans, however they allow you to keep the fee as a reward for converting the assets
+
+
+
+note: this protocol was a MVP to test self-paying loans - to continue development check out the protocol I'm helping build -> [Imaginary Fi](https://github.com/Imaginary-Finance)
